@@ -4,6 +4,12 @@ import Lenis from 'lenis';
 const DEFAULT_LERP_VALUE = 0.1;
 const DEFAULT_WHEEL_MULTIPLIER = 0.7;
 
+const selectors = {
+  enableTrigger: '[data-smooth-scroll-element=enable-trigger]',
+  disableTrigger: '[data-smooth-scroll-element=disable-trigger]',
+  toggleTrigger: '[data-smooth-scroll-element=toggle-trigger]',
+};
+
 const init = () => {
   const noSmoothScroll = document.body.dataset.noSmoothScroll !== undefined;
 
@@ -31,6 +37,7 @@ const init = () => {
   };
 
   let lenis = activateLenis();
+  let isLenisActive = true;
 
   function raf(time: number) {
     lenis?.raf(time);
@@ -39,41 +46,49 @@ const init = () => {
 
   requestAnimationFrame(raf);
 
-  const scrollTogglers = [...document.querySelectorAll(selectors.toggleScroll)] as HTMLElement[];
-  const scrollStartTriggers = [
-    ...document.querySelectorAll(selectors.startScroll),
-  ] as HTMLElement[];
-  const scrollStopTriggers = [...document.querySelectorAll(selectors.stopScroll)] as HTMLElement[];
+  const scrollTogglers = Array.from(
+    document.querySelectorAll<HTMLElement>(selectors.toggleTrigger)
+  );
+  const scrollStartTriggers = Array.from(
+    document.querySelectorAll<HTMLElement>(selectors.enableTrigger)
+  );
+  const scrollStopTriggers = Array.from(
+    document.querySelectorAll<HTMLElement>(selectors.disableTrigger)
+  );
 
   let resetScroll: (() => void) | undefined = undefined;
 
-  for (let i = 0; i < scrollTogglers.length; i++) {
-    const scrollToggleElement = scrollTogglers[i];
+  const enableScrolling = () => {
+    lenis = activateLenis();
+    resetScroll?.();
+    isLenisActive = true;
+  };
 
+  const disableScrolling = () => {
+    lenis?.destroy();
+    resetScroll = preventBodyScroll();
+    isLenisActive = false;
+  };
+
+  for (const scrollToggleElement of scrollTogglers) {
     scrollToggleElement.addEventListener('click', () => {
-      if (scrollToggleElement.classList.contains('stop-scroll')) {
-        resetScroll?.();
-        lenis = activateLenis();
-        scrollToggleElement.classList.remove('stop-scroll');
-        return;
+      if (isLenisActive) {
+        disableScrolling();
+      } else {
+        enableScrolling();
       }
-      resetScroll = preventBodyScroll();
-      lenis?.destroy();
-      scrollToggleElement.classList.add('stop-scroll');
     });
   }
 
   for (const startTrigger of scrollStartTriggers) {
     startTrigger.addEventListener('click', () => {
-      lenis = activateLenis();
-      resetScroll?.();
+      enableScrolling();
     });
   }
 
   for (const stopTrigger of scrollStopTriggers) {
     stopTrigger.addEventListener('click', () => {
-      lenis?.destroy();
-      resetScroll = preventBodyScroll();
+      disableScrolling();
     });
   }
 };
