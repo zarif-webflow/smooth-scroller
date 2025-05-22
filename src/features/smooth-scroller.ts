@@ -1,3 +1,4 @@
+import { monitorElementVisibility } from '@/utils/monitor-element-visibility';
 import { preventBodyScroll } from '@zag-js/remove-scroll';
 import Lenis from 'lenis';
 
@@ -27,6 +28,10 @@ const init = () => {
   const wheelMultiplier = Number.isNaN(wheelMultiplierStr)
     ? DEFAULT_WHEEL_MULTIPLIER
     : wheelMultiplierStr;
+
+  const scrollDisablersIfInView = Array.from(
+    document.querySelectorAll<HTMLElement>('[data-smooth-scroll-element=disable-when-in-view]')
+  );
 
   const activateLenis = () => {
     return new Lenis({
@@ -89,6 +94,16 @@ const init = () => {
   for (const stopTrigger of scrollStopTriggers) {
     stopTrigger.addEventListener('click', () => {
       disableScrolling();
+    });
+  }
+
+  for (const targetElement of scrollDisablersIfInView) {
+    monitorElementVisibility(targetElement, (isVisible) => {
+      if (isVisible) {
+        disableScrolling();
+      } else {
+        enableScrolling();
+      }
     });
   }
 };
