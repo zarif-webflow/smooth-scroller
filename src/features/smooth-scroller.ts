@@ -1,3 +1,4 @@
+import { observeDocumentHeight } from '@/utils/observe-document-height';
 import { preventBodyScroll } from '@zag-js/remove-scroll';
 import Lenis from 'lenis';
 
@@ -58,6 +59,14 @@ const init = () => {
 
   let resetScroll: (() => void) | undefined = undefined;
 
+  const startLenis = () => {
+    lenis = activateLenis();
+  };
+
+  const destroyLenis = () => {
+    lenis?.destroy();
+  };
+
   const enableScrolling = () => {
     lenis = activateLenis();
     resetScroll?.();
@@ -97,6 +106,13 @@ const init = () => {
       disableScrolling();
     });
   }
+
+  observeDocumentHeight(() => {
+    destroyLenis();
+    startLenis();
+
+    console.debug('Smooth Scroller: Lenis was restarted due to document height change!');
+  });
 };
 
 init();
