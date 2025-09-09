@@ -108,10 +108,9 @@ const init = () => {
   }
 
   observeDocumentHeight(() => {
-    destroyLenis();
-    startLenis();
+    lenis.resize();
 
-    console.debug('Smooth Scroller: Lenis was restarted due to document height change!');
+    console.debug('Smooth Scroller: Document height changed, Lenis resized!');
   });
 };
 
